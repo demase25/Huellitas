@@ -2,10 +2,45 @@
 
 import 'package:flutter/material.dart';
 import '../models/mascota.dart';
+import '../services/recordatorio_service.dart';
 import 'recordatorio_form_screen.dart';
 
-class MascotaDetailScreen extends StatelessWidget {
+class MascotaDetailScreen extends StatefulWidget {
   const MascotaDetailScreen({super.key});
+
+  @override
+  State<MascotaDetailScreen> createState() => _MascotaDetailScreenState();
+}
+
+class _MascotaDetailScreenState extends State<MascotaDetailScreen> {
+  List<Recordatorio> _recordatorios = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecordatorios();
+  }
+
+  Future<void> _loadRecordatorios() async {
+    final Mascota mascota = ModalRoute.of(context)!.settings.arguments as Mascota;
+    try {
+      final recordatorios = await RecordatorioService.getRecordatoriosByMascotaId(mascota.id);
+      if (mounted) {
+        setState(() {
+          _recordatorios = recordatorios;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _recordatorios = [];
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,42 +156,68 @@ class MascotaDetailScreen extends StatelessWidget {
             
             const SizedBox(height: 16),
             
-            // Recordatorios de ejemplo (en una app real vendrían de una base de datos)
-            _buildReminderCard(
-              title: 'Vacuna',
-              date: '20 abr. 2024',
-              icon: Icons.vaccines,
-            ),
-            
-            const SizedBox(height: 12),
-            
-            _buildReminderCard(
-              title: 'Veterinaria',
-              date: '5 may. 2024',
-              icon: Icons.local_hospital,
-            ),
+            // Mostrar recordatorios reales
+            if (_recordatorios.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.event_note,
+                      size: 48,
+                      color: Colors.grey.withOpacity(0.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No hay recordatorios',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.withOpacity(0.7),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Agrega tu primer recordatorio',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.withOpacity(0.5),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ..._recordatorios.map((recordatorio) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildRecordatorioCard(recordatorio),
+              )).toList(),
             
             const SizedBox(height: 16),
             
-                         // Botón agregar recordatorio
-             InkWell(
-               onTap: () async {
-                 final result = await Navigator.push(
-                   context,
-                   MaterialPageRoute(
-                     builder: (context) => RecordatorioFormScreen(mascota: mascota),
-                   ),
-                 );
-                 if (result != null) {
-                   // Aquí podrías actualizar la lista de recordatorios
-                   ScaffoldMessenger.of(context).showSnackBar(
-                     const SnackBar(
-                       content: Text('Recordatorio agregado exitosamente'),
-                       backgroundColor: Color(0xFF4CAF50),
-                     ),
-                   );
-                 }
-               },
+                                                  // Botón agregar recordatorio
+              InkWell(
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RecordatorioFormScreen(mascota: mascota),
+                    ),
+                  );
+                                     if (result != null) {
+                     // Recargar la lista de recordatorios
+                     await _loadRecordatorios();
+                   }
+                },
                child: Container(
                  width: double.infinity,
                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
@@ -331,6 +392,122 @@ class MascotaDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildRecordatorioCard(Recordatorio recordatorio) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: recordatorio.completado 
+            ? Colors.grey.withOpacity(0.1)
+            : const Color(0xFF4CAF50).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: recordatorio.completado 
+              ? Colors.grey.withOpacity(0.3)
+              : const Color(0xFF4CAF50).withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: recordatorio.completado 
+                  ? Colors.grey
+                  : const Color(0xFF4CAF50),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              _getIconForTipo(recordatorio.titulo),
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  recordatorio.titulo,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: recordatorio.completado 
+                        ? Colors.grey
+                        : const Color(0xFF2C3E50),
+                    decoration: recordatorio.completado 
+                        ? TextDecoration.lineThrough
+                        : null,
+                  ),
+                ),
+                Text(
+                  _formatDateTime(recordatorio.fecha),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: recordatorio.completado 
+                        ? Colors.grey
+                        : const Color(0xFF666666),
+                  ),
+                ),
+                if (recordatorio.descripcion != null && recordatorio.descripcion!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      recordatorio.descripcion!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: recordatorio.completado 
+                            ? Colors.grey.withOpacity(0.7)
+                            : const Color(0xFF666666),
+                        fontStyle: FontStyle.italic,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+                     // Botón para marcar como completado
+           IconButton(
+             onPressed: () async {
+               await RecordatorioService.toggleRecordatorioCompletado(recordatorio.id);
+               if (mounted) {
+                 await _loadRecordatorios(); // Recargar la lista
+               }
+             },
+             icon: Icon(
+               recordatorio.completado 
+                   ? Icons.check_circle
+                   : Icons.radio_button_unchecked,
+               color: recordatorio.completado 
+                   ? const Color(0xFF4CAF50)
+                   : Colors.grey,
+             ),
+           ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getIconForTipo(String tipo) {
+    switch (tipo) {
+      case 'Vacuna':
+        return Icons.vaccines;
+      case 'Veterinaria':
+        return Icons.local_hospital;
+      case 'Baño':
+        return Icons.shower;
+      case 'Corte de pelo':
+        return Icons.content_cut;
+      case 'Medicación':
+        return Icons.medication;
+      default:
+        return Icons.event_note;
+    }
+  }
+
   String _formatDate(String date) {
     // Función simple para formatear la fecha
     // En una app real, usarías un paquete como intl
@@ -344,5 +521,21 @@ class MascotaDetailScreen extends StatelessWidget {
     } catch (e) {
       return date; // Retorna la fecha original si no se puede parsear
     }
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final months = [
+      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+      'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
+    ];
+    
+    String fechaStr = '${dateTime.day} ${months[dateTime.month - 1]}. ${dateTime.year}';
+    
+    // Si tiene hora específica (no es medianoche), agregar la hora
+    if (dateTime.hour != 0 || dateTime.minute != 0) {
+      fechaStr += ' a las ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
+    
+    return fechaStr;
   }
 }

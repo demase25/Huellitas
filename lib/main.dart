@@ -1,6 +1,7 @@
 // lib/main.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/mascota_detail_screen.dart';
@@ -22,6 +23,16 @@ class HuellitasApp extends StatelessWidget {
       title: 'Huellitas',
       debugShowCheckedModeBanner: false,
       theme: appTheme,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', 'ES'),
+        Locale('en', 'US'),
+      ],
+      locale: const Locale('es', 'ES'),
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
@@ -29,9 +40,9 @@ class HuellitasApp extends StatelessWidget {
         '/mascota_form': (context) => const MascotaFormScreen(),
         '/mascota_detail': (context) => const MascotaDetailScreen(),
         '/recordatorio_form': (context) {
-  final mascota = ModalRoute.of(context)!.settings.arguments as Mascota;
-  return RecordatorioFormScreen(mascota: mascota);
-},
+          final mascota = ModalRoute.of(context)!.settings.arguments as Mascota;
+          return RecordatorioFormScreen(mascota: mascota);
+        },
       },
     );
   }

@@ -18,6 +18,30 @@ class Mascota {
     this.observaciones,
     this.imagen,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'nombre': nombre,
+      'raza': raza,
+      'fechaNacimiento': fechaNacimiento,
+      'peso': peso,
+      'observaciones': observaciones,
+      'imagen': imagen,
+    };
+  }
+
+  factory Mascota.fromMap(Map<String, dynamic> map) {
+    return Mascota(
+      id: map['id'],
+      nombre: map['nombre'],
+      raza: map['raza'],
+      fechaNacimiento: map['fechaNacimiento'],
+      peso: map['peso'].toDouble(),
+      observaciones: map['observaciones'],
+      imagen: map['imagen'],
+    );
+  }
 }
 
 class Recordatorio {

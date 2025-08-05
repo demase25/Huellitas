@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../models/mascota.dart';
+import '../services/mascota_service.dart';
 
 class MascotaFormScreen extends StatefulWidget {
   const MascotaFormScreen({super.key});
@@ -75,7 +76,7 @@ class _MascotaFormScreenState extends State<MascotaFormScreen> {
     return '${date.day} ${months[date.month - 1]}. ${date.year}';
   }
 
-  void _saveMascota() {
+  Future<void> _saveMascota() async {
     if (_formKey.currentState!.validate()) {
       if (_fechaNacimiento == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -87,18 +88,38 @@ class _MascotaFormScreenState extends State<MascotaFormScreen> {
         return;
       }
 
-      final mascota = Mascota(
-        id: _isEditing ? (ModalRoute.of(context)?.settings.arguments as Mascota).id : DateTime.now().millisecondsSinceEpoch.toString(),
-        nombre: _nombreController.text,
-        raza: _razaController.text,
-        fechaNacimiento: _fechaNacimiento!.toIso8601String(),
-        peso: double.tryParse(_pesoController.text) ?? 0.0,
-        observaciones: _observacionesController.text.isEmpty ? null : _observacionesController.text,
-      );
+      try {
+        final mascota = Mascota(
+          id: _isEditing ? (ModalRoute.of(context)?.settings.arguments as Mascota).id : DateTime.now().millisecondsSinceEpoch.toString(),
+          nombre: _nombreController.text,
+          raza: _razaController.text,
+          fechaNacimiento: _fechaNacimiento!.toIso8601String(),
+          peso: double.tryParse(_pesoController.text) ?? 0.0,
+          observaciones: _observacionesController.text.isEmpty ? null : _observacionesController.text,
+        );
 
-      // Aquí guardarías en la base de datos
-      // Por ahora solo navegamos de vuelta
-      Navigator.pop(context, mascota);
+        // Guardar en el servicio
+        await MascotaService.saveMascota(mascota);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_isEditing ? 'Mascota actualizada' : 'Mascota guardada'),
+              backgroundColor: const Color(0xFF4CAF50),
+            ),
+          );
+          Navigator.of(context).pop(true); // Retornar true para indicar que se guardó
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error al guardar la mascota'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 

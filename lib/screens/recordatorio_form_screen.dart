@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../models/mascota.dart';
+import '../services/recordatorio_service.dart';
 
 class RecordatorioFormScreen extends StatefulWidget {
   final Mascota mascota;
@@ -21,6 +22,7 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
   final _descripcionController = TextEditingController();
   
   DateTime? _fecha;
+  TimeOfDay? _hora;
   String _tipoRecordatorio = 'Vacuna';
 
   final List<String> _tiposRecordatorio = [
@@ -28,7 +30,7 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
     'Veterinaria',
     'Baño',
     'Corte de pelo',
-    'Desparasitación',
+    'Medicación',
     'Otro',
   ];
 
@@ -46,6 +48,19 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       locale: const Locale('es', 'ES'),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFFF6B35),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF2C3E50),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != _fecha) {
       setState(() {
@@ -54,13 +69,57 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
     }
   }
 
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _hora ?? TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFFF6B35),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF2C3E50),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _hora) {
+      setState(() {
+        _hora = picked;
+      });
+    }
+  }
+
+  void _clearDateTime() {
+    setState(() {
+      _fecha = null;
+      _hora = null;
+    });
+  }
+
   String _formatDate(DateTime? date) {
     if (date == null) return '';
     final months = [
       'ene', 'feb', 'mar', 'abr', 'may', 'jun',
       'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
     ];
-    return '${date.day} ${months[date.month - 1]}. ${date.year}';
+    String fechaStr = '${date.day} ${months[date.month - 1]}. ${date.year}';
+    
+    // Si hay hora seleccionada, agregarla al formato de fecha
+    if (_hora != null) {
+      fechaStr += ' a las ${_formatTime(_hora)}';
+    }
+    
+    return fechaStr;
+  }
+
+  String _formatTime(TimeOfDay? time) {
+    if (time == null) return '';
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   IconData _getIconForTipo(String tipo) {
@@ -73,14 +132,14 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
         return Icons.shower;
       case 'Corte de pelo':
         return Icons.content_cut;
-      case 'Desparasitación':
+      case 'Medicación':
         return Icons.medication;
       default:
         return Icons.event_note;
     }
   }
 
-  void _saveRecordatorio() {
+  Future<void> _saveRecordatorio() async {
     if (_formKey.currentState!.validate()) {
       if (_fecha == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -92,19 +151,55 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
         return;
       }
 
+      // Combinar fecha y hora si se seleccionó una hora
+      DateTime fechaCompleta = _fecha!;
+      if (_hora != null) {
+        fechaCompleta = DateTime(
+          _fecha!.year,
+          _fecha!.month,
+          _fecha!.day,
+          _hora!.hour,
+          _hora!.minute,
+        );
+      }
+
       final recordatorio = Recordatorio(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         mascotaId: widget.mascota.id,
         titulo: _tituloController.text,
-        fecha: _fecha!,
+        fecha: fechaCompleta,
         descripcion: _descripcionController.text.isEmpty 
             ? null 
             : _descripcionController.text,
       );
 
-      // Aquí guardarías en la base de datos
-      // Por ahora solo navegamos de vuelta
-      Navigator.pop(context, recordatorio);
+      try {
+        // Guardar el recordatorio usando el servicio
+        await RecordatorioService.saveRecordatorio(recordatorio);
+        
+        // Mostrar mensaje de éxito
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Recordatorio guardado exitosamente'),
+              backgroundColor: Color(0xFF4CAF50),
+            ),
+          );
+        }
+        
+        // Navegar de vuelta
+        Navigator.pop(context, recordatorio);
+      } catch (e) {
+        // Mostrar mensaje de error
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al guardar el recordatorio: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -197,8 +292,8 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
                     
                     const SizedBox(height: 20),
                     
-                    // Campo Fecha
-                    _buildDateField(),
+                    // Campo Fecha y Hora
+                    _buildDateTimeField(),
                     
                     const SizedBox(height: 20),
                     
@@ -373,12 +468,12 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
     );
   }
 
-  Widget _buildDateField() {
+  Widget _buildDateTimeField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Fecha del recordatorio',
+          'Fecha y hora del recordatorio',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -386,6 +481,8 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
           ),
         ),
         const SizedBox(height: 8),
+        
+        // Campo de fecha
         InkWell(
           onTap: _selectDate,
           child: Container(
@@ -396,7 +493,7 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
               border: Border.all(
                 color: _fecha == null 
                     ? Colors.red.withOpacity(0.3)
-                    : Colors.transparent,
+                    : Colors.grey.withOpacity(0.3),
                 width: 1,
               ),
             ),
@@ -420,10 +517,65 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
                     ),
                   ),
                 ),
+                if (_fecha != null)
+                  Icon(
+                    Icons.check_circle,
+                    color: const Color(0xFF4CAF50),
+                    size: 20,
+                  ),
               ],
             ),
           ),
         ),
+        
+        const SizedBox(height: 12),
+        
+        // Campo de hora
+        InkWell(
+          onTap: _selectTime,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _hora == null 
+                    ? Colors.orange.withOpacity(0.3)
+                    : Colors.grey.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.access_time,
+                  color: const Color(0xFFFF6B35),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _hora == null 
+                        ? 'Seleccionar hora (opcional)'
+                        : _formatTime(_hora),
+                    style: TextStyle(
+                      color: _hora == null 
+                          ? const Color(0xFF999999)
+                          : const Color(0xFF2C3E50),
+                    ),
+                  ),
+                ),
+                if (_hora != null)
+                  Icon(
+                    Icons.check_circle,
+                    color: const Color(0xFF4CAF50),
+                    size: 20,
+                  ),
+              ],
+            ),
+          ),
+        ),
+        
         if (_fecha == null)
           const Padding(
             padding: EdgeInsets.only(top: 8, left: 16),
@@ -433,6 +585,32 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
                 color: Colors.red,
                 fontSize: 12,
               ),
+            ),
+          ),
+        
+        // Botón para limpiar fecha y hora
+        if (_fecha != null || _hora != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: _clearDateTime,
+                  icon: const Icon(
+                    Icons.clear,
+                    size: 16,
+                    color: Color(0xFFFF6B35),
+                  ),
+                  label: const Text(
+                    'Limpiar fecha y hora',
+                    style: TextStyle(
+                      color: Color(0xFFFF6B35),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
       ],
