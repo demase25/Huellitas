@@ -38,7 +38,13 @@ class _MascotaFormScreenState extends State<MascotaFormScreen> {
         _razaController.text = mascota.raza;
         _pesoController.text = mascota.peso.toString();
         _observacionesController.text = mascota.observaciones ?? '';
-        _fechaNacimiento = DateTime.tryParse(mascota.fechaNacimiento);
+        // Manejar tanto fechas con hora como sin hora
+        if (mascota.fechaNacimiento.contains('T')) {
+          _fechaNacimiento = DateTime.tryParse(mascota.fechaNacimiento);
+        } else {
+          // Si es solo fecha (YYYY-MM-DD), agregar la hora para crear un DateTime válido
+          _fechaNacimiento = DateTime.tryParse('${mascota.fechaNacimiento}T00:00:00');
+        }
       });
     }
   }
@@ -93,7 +99,7 @@ class _MascotaFormScreenState extends State<MascotaFormScreen> {
           id: _isEditing ? (ModalRoute.of(context)?.settings.arguments as Mascota).id : DateTime.now().millisecondsSinceEpoch.toString(),
           nombre: _nombreController.text,
           raza: _razaController.text,
-          fechaNacimiento: _fechaNacimiento!.toIso8601String(),
+          fechaNacimiento: '${_fechaNacimiento!.year}-${_fechaNacimiento!.month.toString().padLeft(2, '0')}-${_fechaNacimiento!.day.toString().padLeft(2, '0')}',
           peso: double.tryParse(_pesoController.text) ?? 0.0,
           observaciones: _observacionesController.text.isEmpty ? null : _observacionesController.text,
         );

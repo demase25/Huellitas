@@ -512,7 +512,15 @@ class _MascotaDetailScreenState extends State<MascotaDetailScreen> {
     // Función simple para formatear la fecha
     // En una app real, usarías un paquete como intl
     try {
-      final DateTime dateTime = DateTime.parse(date);
+      DateTime dateTime;
+      // Manejar tanto fechas con hora como sin hora
+      if (date.contains('T')) {
+        dateTime = DateTime.parse(date);
+      } else {
+        // Si es solo fecha (YYYY-MM-DD), agregar la hora para crear un DateTime válido
+        dateTime = DateTime.parse('${date}T00:00:00');
+      }
+      
       final months = [
         'ene', 'feb', 'mar', 'abr', 'may', 'jun',
         'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
