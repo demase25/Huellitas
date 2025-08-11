@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/mascota.dart';
 import '../services/mascota_service.dart';
+import '../services/pro_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,11 +16,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<Mascota> _mascotas = [];
   bool _isLoading = true;
+  bool _isPro = false;
 
   @override
   void initState() {
     super.initState();
     _loadMascotas();
+    _loadProStatus();
   }
 
   Future<void> _loadMascotas() async {
@@ -73,6 +76,22 @@ class _HomeScreenState extends State<HomeScreen> {
     await _loadMascotas();
   }
 
+  Future<void> _loadProStatus() async {
+    final bool pro = await ProService.isPro();
+    if (mounted) {
+      setState(() {
+        _isPro = pro;
+      });
+    }
+  }
+
+  Future<bool> _ensurePro() async {
+    if (_isPro) return true;
+    final result = await Navigator.pushNamed(context, '/pro');
+    await _loadProStatus();
+    return await ProService.isPro();
+  }
+
   Future<void> _deleteMascota(Mascota mascota) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -119,6 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _exportData() async {
+    if (!await _ensurePro()) return;
     try {
       final data = await MascotaService.exportData();
       
@@ -160,6 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _importData() async {
+    if (!await _ensurePro()) return;
     try {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
       if (clipboardData?.text != null) {
@@ -243,6 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _clearAllData() async {
+    if (!await _ensurePro()) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -296,6 +318,17 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xFFFF6B35),
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            tooltip: _isPro ? 'Huellitas Pro activado' : 'Activar Huellitas Pro',
+            icon: Icon(
+              Icons.stars,
+              color: _isPro ? Colors.yellowAccent : Colors.white,
+            ),
+            onPressed: () async {
+              await Navigator.pushNamed(context, '/pro');
+              await _loadProStatus();
+            },
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) async {
@@ -308,6 +341,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   break;
                 case 'clear':
                   await _clearAllData();
+                  break;
+                case 'pro':
+                  await Navigator.pushNamed(context, '/pro');
+                  await _loadProStatus();
                   break;
               }
             },
@@ -339,6 +376,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(Icons.delete_forever, color: Colors.red),
                     SizedBox(width: 8),
                     Text('Limpiar todos los datos', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'pro',
+                child: Row(
+                  children: [
+                    Icon(Icons.stars, color: Color(0xFFFF6B35)),
+                    SizedBox(width: 8),
+                    Text('Huellitas Pro'),
                   ],
                 ),
               ),
