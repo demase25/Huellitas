@@ -59,12 +59,15 @@ class _ProScreenState extends State<ProScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFFF6B35), Color(0xFFFF8A65)],
+                ),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFFF6B35).withOpacity(0.2)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: const Color(0xFFFF6B35).withOpacity(0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -73,42 +76,141 @@ class _ProScreenState extends State<ProScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text(
-                    'Desbloquea Huellitas Pro',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50)),
+                  Row(
+                    children: [
+                      Icon(Icons.stars, color: Colors.white, size: 28),
+                      SizedBox(width: 12),
+                      Text(
+                        'Huellitas Pro',
+                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Obtén funciones avanzadas para cuidar mejor a tus mascotas:',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
-                  ),
+                  SizedBox(height: 16),
+                                     Text(
+                     'Desbloquea funciones premium para cuidar mejor a tus mascotas',
+                     style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w500),
+                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            _buildFeature(Icons.share, 'Exportar e importar datos', 'Respalda y migra tu información de forma segura.'),
+            _buildFeature(
+              Icons.pets, 
+              'Mascotas ilimitadas', 
+              'Agrega tantas mascotas como quieras (actualmente limitado a 2 en versión gratuita).',
+              isHighlighted: true,
+            ),
             const SizedBox(height: 12),
-            _buildFeature(Icons.delete_forever, 'Limpieza masiva', 'Borra todos los datos con un toque.'),
+            _buildFeature(
+              Icons.notifications_active, 
+              'Recordatorios ilimitados', 
+              'Crea recordatorios sin restricciones (actualmente limitado a 3 en versión gratuita).',
+              isHighlighted: true,
+            ),
             const SizedBox(height: 12),
-            _buildFeature(Icons.notifications_active, 'Recordatorios avanzados', 'Próximamente: tipos y repetición.'),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _activating ? null : _activatePro,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF6B35),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            _buildFeature(
+              Icons.block, 
+              'Sin publicidad', 
+              'Disfruta de una experiencia completamente limpia sin anuncios.',
+            ),
+            const SizedBox(height: 16),
+            // Mensaje sobre funciones gratuitas
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Las funciones básicas como exportar, importar y limpiar datos están disponibles gratuitamente para todos los usuarios.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.green.shade700,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                    child: _activating
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text('Activar Huellitas Pro'),
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Información de precio
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B35).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFF6B35).withOpacity(0.3)),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Precio especial de lanzamiento',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF2C3E50)),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'S/ 9.90',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFFF6B35),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'por única vez',
+                        style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Acceso de por vida • Sin suscripciones',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF666666), fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Botón de compra
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _activating ? null : _activatePro,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF6B35),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 4,
                 ),
-              ],
+                child: _activating
+                    ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.shopping_cart, size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Comprar Huellitas Pro',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+              ),
             ),
             const SizedBox(height: 12),
             Center(
@@ -123,30 +225,73 @@ class _ProScreenState extends State<ProScreen> {
     );
   }
 
-  Widget _buildFeature(IconData icon, String title, String subtitle) {
+  Widget _buildFeature(IconData icon, String title, String subtitle, {bool isHighlighted = false}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isHighlighted ? const Color(0xFFFF6B35).withOpacity(0.1) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.25)),
+        border: Border.all(
+          color: isHighlighted 
+              ? const Color(0xFFFF6B35).withOpacity(0.4)
+              : Colors.grey.withOpacity(0.25)
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFFFF6B35)),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isHighlighted 
+                  ? const Color(0xFFFF6B35)
+                  : const Color(0xFFFF6B35).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon, 
+              color: isHighlighted ? Colors.white : const Color(0xFFFF6B35),
+              size: 20,
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF2C3E50))),
+                Text(
+                  title, 
+                  style: TextStyle(
+                    fontSize: 16, 
+                    fontWeight: FontWeight.w600, 
+                    color: isHighlighted ? const Color(0xFFFF6B35) : const Color(0xFF2C3E50)
+                  )
+                ),
                 const SizedBox(height: 4),
-                Text(subtitle, style: const TextStyle(fontSize: 14, color: Color(0xFF666666))),
+                Text(
+                  subtitle, 
+                  style: const TextStyle(fontSize: 14, color: Color(0xFF666666))
+                ),
               ],
             ),
           ),
+          if (isHighlighted)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B35),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'PRO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
         ],
       ),
     );

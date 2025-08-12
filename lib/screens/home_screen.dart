@@ -85,11 +85,45 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<bool> _ensurePro() async {
-    if (_isPro) return true;
-    final result = await Navigator.pushNamed(context, '/pro');
-    await _loadProStatus();
-    return await ProService.isPro();
+
+
+  void _showProUpsell(String feature) {
+    String message = '';
+    switch (feature) {
+      case 'mascotas':
+        message = 'Has alcanzado el límite de ${ProService.getMaxFreeMascotas()} mascotas en la versión gratuita.';
+        break;
+      case 'recordatorios':
+        message = 'Has alcanzado el límite de ${ProService.getMaxFreeRecordatorios()} recordatorios en la versión gratuita.';
+        break;
+      default:
+        message = 'Esta función requiere Huellitas Pro.';
+    }
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Función Pro'),
+        content: Text('$message\n\n¿Quieres desbloquear Huellitas Pro para acceder a funciones ilimitadas?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Más tarde'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/pro');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF6B35),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Ver Pro'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _deleteMascota(Mascota mascota) async {
@@ -138,7 +172,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _exportData() async {
-    if (!await _ensurePro()) return;
     try {
       final data = await MascotaService.exportData();
       
@@ -180,7 +213,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _importData() async {
-    if (!await _ensurePro()) return;
     try {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
       if (clipboardData?.text != null) {
@@ -264,7 +296,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _clearAllData() async {
-    if (!await _ensurePro()) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -313,7 +344,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Huellitas 🐾'),
+        title: Column(
+          children: [
+            const Text('Huellitas 🐾'),
+            if (!_isPro && _mascotas.isNotEmpty)
+              Text(
+                '${_mascotas.length}/${ProService.getMaxFreeMascotas()} mascotas',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.white70,
+                ),
+              ),
+          ],
+        ),
         centerTitle: true,
         backgroundColor: const Color(0xFFFF6B35),
         foregroundColor: Colors.white,
@@ -420,12 +464,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Agrega tu primera mascota',
+                        _isPro 
+                            ? 'Agrega tu primera mascota'
+                            : 'Agrega hasta ${ProService.getMaxFreeMascotas()} mascotas (versión gratuita)',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.withOpacity(0.5),
                         ),
                       ),
+                      if (!_isPro) ...[
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: () => Navigator.pushNamed(context, '/pro'),
+                          child: const Text(
+                            'Desbloquear ilimitado con Pro',
+                            style: TextStyle(
+                              color: Color(0xFFFF6B35),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 )
@@ -533,6 +592,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          // Verificar límite de mascotas en modo free
+          if (!_isPro && _mascotas.length >= ProService.getMaxFreeMascotas()) {
+            _showProUpsell('mascotas');
+            return;
+          }
+          
           final result = await Navigator.pushNamed(context, '/mascota_form');
           if (result != null) {
             await _loadMascotas();

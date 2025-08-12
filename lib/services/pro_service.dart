@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ProService {
   static const String _proKey = 'is_pro';
+  static const int _maxFreeMascotas = 2;
+  static const int _maxFreeRecordatorios = 3;
 
   static Future<bool> isPro() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -20,6 +22,22 @@ class ProService {
     // Por ahora, simulamos una restauración exitosa solo si ya estaba activo
     return await isPro();
   }
+
+  // Verificar si puede agregar más mascotas
+  static Future<bool> canAddMascota(int currentCount) async {
+    if (await isPro()) return true;
+    return currentCount < _maxFreeMascotas;
+  }
+
+  // Verificar si puede agregar más recordatorios
+  static Future<bool> canAddRecordatorio(int currentCount) async {
+    if (await isPro()) return true;
+    return currentCount < _maxFreeRecordatorios;
+  }
+
+  // Obtener límites para mostrar en la UI
+  static int getMaxFreeMascotas() => _maxFreeMascotas;
+  static int getMaxFreeRecordatorios() => _maxFreeRecordatorios;
 }
 
 
