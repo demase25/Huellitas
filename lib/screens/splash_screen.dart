@@ -21,72 +21,78 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFFFF8F0),
-              Color(0xFFFFF3E9),
-              Color(0xFFFFE8D6),
+              Color(0xFFFFE8D6), // Naranja pastel muy claro
+              Color(0xFFFFF3E9), // Naranja pastel claro
+              Color(0xFFFFF8F0), // Naranja pastel extra claro
             ],
           ),
         ),
         child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo de Huellitas
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFFF6B35).withOpacity(0.1),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFF6B35).withOpacity(0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+                             // Huella grande y proporcional (como en home screen vacío)
+               Container(
+                 padding: const EdgeInsets.all(40),
+                 decoration: BoxDecoration(
+                   shape: BoxShape.circle,
+                   color: const Color(0xFFFF6B35).withOpacity(0.15), // Naranja pastel suave
+                   boxShadow: [
+                     BoxShadow(
+                       color: const Color(0xFFFF6B35).withOpacity(0.2),
+                       blurRadius: 40,
+                       offset: const Offset(0, 20),
+                     ),
+                   ],
+                 ),
+                 child: const Icon(
+                   Icons.pets,
+                   size: 120, // Más grande que el home screen (80px)
+                   color: Color(0xFFFF6B35), // Naranja principal suave
+                 ),
+               ),
+              const SizedBox(height: 40),
+                                                           // Título de la aplicación
+                Text(
+                  'Huellitas',
+                  style: TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFE64A19), // Naranja oscuro suave
+                    letterSpacing: 3,
+                    shadows: [
+                      Shadow(
+                        offset: const Offset(0, 2),
+                        blurRadius: 4,
+                        color: const Color(0xFFFF6B35).withOpacity(0.3),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Image.asset(
-                'assets/images/logo huellitas.png',
-                height: 150,
-                width: 150,
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(height: 30),
-            // Título de la aplicación
-            const Text(
-              'Huellitas',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFFF6B35),
-                letterSpacing: 2,
-                shadows: [
-                  Shadow(
-                    offset: Offset(0, 2),
-                    blurRadius: 4,
-                    color: Colors.black26,
+                ),
+              const SizedBox(height: 15),
+                                                           // Subtítulo
+                Text(
+                  'Cuidando a tus mascotas',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: const Color(0xFF666666), // Gris suave
+                    fontStyle: FontStyle.italic,
+                    shadows: [
+                      Shadow(
+                        offset: const Offset(0, 1),
+                        blurRadius: 2,
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            // Subtítulo
-            const Text(
-              'Cuidando a tus mascotas',
-              style: TextStyle(
-                fontSize: 16,
-                color: Color(0xFF666666),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ),
+                ),
+            ],
+          ),
         ),
       ),
     );

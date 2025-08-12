@@ -6,6 +6,10 @@ class ProService {
   static const String _proKey = 'is_pro';
   static const int _maxFreeMascotas = 2;
   static const int _maxFreeRecordatorios = 3;
+  
+  // Precio de lanzamiento
+  static const String _precioLanzamiento = '\$1.99';
+  static const String _sloganLanzamiento = 'Llévalo hoy a precio especial de lanzamiento';
 
   static Future<bool> isPro() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -38,6 +42,10 @@ class ProService {
   // Obtener límites para mostrar en la UI
   static int getMaxFreeMascotas() => _maxFreeMascotas;
   static int getMaxFreeRecordatorios() => _maxFreeRecordatorios;
+  
+  // Obtener información de lanzamiento
+  static String getPrecioLanzamiento() => _precioLanzamiento;
+  static String getSloganLanzamiento() => _sloganLanzamiento;
 }
 
 

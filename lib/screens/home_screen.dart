@@ -34,11 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoading = false;
         });
       }
-      
-      // Si no hay mascotas, agregar algunas de ejemplo
-      if (mascotas.isEmpty) {
-        await _addSampleMascotas();
-      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -49,32 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _addSampleMascotas() async {
-    final mascotasEjemplo = [
-      Mascota(
-        id: '1',
-        nombre: 'Luna',
-        raza: 'Golden Retriever',
-        fechaNacimiento: '2020-06-12',
-        peso: 25.5,
-        observaciones: 'Muy juguetona y cariñosa',
-      ),
-      Mascota(
-        id: '2',
-        nombre: 'Milo',
-        raza: 'Gato Siamés',
-        fechaNacimiento: '2019-09-08',
-        peso: 4.8,
-        observaciones: 'Le gusta dormir en lugares altos',
-      ),
-    ];
 
-    for (final mascota in mascotasEjemplo) {
-      await MascotaService.saveMascota(mascota);
-    }
-
-    await _loadMascotas();
-  }
 
   Future<void> _loadProStatus() async {
     final bool pro = await ProService.isPro();
@@ -97,14 +67,14 @@ class _HomeScreenState extends State<HomeScreen> {
         message = 'Has alcanzado el límite de ${ProService.getMaxFreeRecordatorios()} recordatorios en la versión gratuita.';
         break;
       default:
-        message = 'Esta función requiere Huellitas Pro.';
+        message = 'Esta función requiere Pro Compra Única.';
     }
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Función Pro'),
-        content: Text('$message\n\n¿Quieres desbloquear Huellitas Pro para acceder a funciones ilimitadas?'),
+        content: Text('$message\n\n¿Quieres desbloquear Pro Compra Única para acceder a funciones ilimitadas?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -363,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            tooltip: _isPro ? 'Huellitas Pro activado' : 'Activar Huellitas Pro',
+            tooltip: _isPro ? 'Pro Compra Única activado' : 'Activar Pro Compra Única',
             icon: Icon(
               Icons.stars,
               color: _isPro ? Colors.yellowAccent : Colors.white,
@@ -429,7 +399,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Icon(Icons.stars, color: Color(0xFFFF6B35)),
                     SizedBox(width: 8),
-                    Text('Huellitas Pro'),
+                    Text('Pro Compra Única'),
                   ],
                 ),
               ),

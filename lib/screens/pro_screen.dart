@@ -45,7 +45,7 @@ class _ProScreenState extends State<ProScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF3E9),
       appBar: AppBar(
-        title: const Text('Huellitas Pro'),
+        title: const Text('Pro Compra Única'),
         backgroundColor: const Color(0xFFFF6B35),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -75,23 +75,40 @@ class _ProScreenState extends State<ProScreen> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Row(
-                    children: [
-                      Icon(Icons.stars, color: Colors.white, size: 28),
-                      SizedBox(width: 12),
-                      Text(
-                        'Huellitas Pro',
-                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                                     Text(
+                                 children: [
+                   const Row(
+                     children: [
+                       Icon(Icons.stars, color: Colors.white, size: 28),
+                       SizedBox(width: 12),
+                       Text(
+                         'Huellitas Pro',
+                         style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                       ),
+                     ],
+                   ),
+                   const SizedBox(height: 8),
+                   Container(
+                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                     decoration: BoxDecoration(
+                       color: Colors.white.withOpacity(0.2),
+                       borderRadius: BorderRadius.circular(20),
+                     ),
+                     child: const Text(
+                       'COMPRA ÚNICA',
+                       style: TextStyle(
+                         fontSize: 12,
+                         fontWeight: FontWeight.bold,
+                         color: Colors.white,
+                         letterSpacing: 1,
+                       ),
+                     ),
+                   ),
+                   const SizedBox(height: 16),
+                   const Text(
                      'Desbloquea funciones premium para cuidar mejor a tus mascotas',
                      style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w500),
                    ),
-                ],
+                 ],
               ),
             ),
             const SizedBox(height: 16),
@@ -153,20 +170,21 @@ class _ProScreenState extends State<ProScreen> {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    'Precio especial de lanzamiento',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF2C3E50)),
+                  Text(
+                    ProService.getSloganLanzamiento(),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF2C3E50)),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'S/ 9.90',
-                        style: TextStyle(
+                        ProService.getPrecioLanzamiento(),
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFFFF6B35),
+                          color: Color(0xFFFF6B35),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -205,7 +223,7 @@ class _ProScreenState extends State<ProScreen> {
                           Icon(Icons.shopping_cart, size: 20),
                           SizedBox(width: 8),
                           Text(
-                            'Comprar Huellitas Pro',
+                            'Comprar Pro Compra Única',
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                           ),
                         ],
